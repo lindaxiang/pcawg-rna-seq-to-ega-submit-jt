@@ -1,0 +1,244 @@
+#RNA-Seq workflow definition
+
+workflow:
+  name:  pcawg-rna-seq-to-ega
+  version: "0.1.0"
+  source_code: "https://github.com/icgc-dcc/pcawg-rna-seq-to-ega-jt"
+
+  runtime:
+    docker: null
+
+  execution:
+    constraint: same_host  # other values: 'shared_fs' (not supported yet), 'same_worker'
+    memory: 4g
+    cpu: 2
+
+  input:
+    project_code:
+      type: string
+    specimen_type:
+      type: string
+    submitter_donor_id:
+      type: string
+    submitter_sample_id:
+      type: string
+    submitter_specimen_id:
+      type: string
+    gnos_id:   # either EGAR or EGAX ID
+      type: string
+    data_type:
+      type: string
+    aliquot_id:
+      type: string
+    files:
+      type: array
+      items:
+        type: object
+        properties:
+          file_name:
+            type: string
+          file_md5sum:
+            type: string
+          file_size:
+            type: long
+          object_id:  # this is the object_id obtained from ICGC service using bundle_id and file_name as input
+            type: string
+
+
+  output: null  # we may not need this, does the workflow as a whole need some sort of output? or output from individual tasks is just fine
+
+  tasks:
+    parallel_download:
+      scatter:
+        input:
+          files:
+            with_items: files  # this can be from output of a previous task, eg, files@previous_task
+            task_suffix: files.object_id  # Optional. IN this case, 'files' will be used if omitted.
+      tasks:
+        download:
+          tool: download  # optional, if omitted tool name will be the same as task name
+          input:
+            file_name: files.file_name
+            file_md5sum: files.file_md5sum
+            object_id: files.object_id
+          depends_on: null
+        md5sum_check:
+          tool: md5sum_check
+          input:
+            file: file@download
+            file_md5sum: file_md5sum@download
+          depends_on:  # optional, this could be figured out from input params
+          - completed@download # state@parent_tool@
+        encryption:
+          tool: encryption  # optional, if omitted tool name will be the same as task name
+          input:
+            input_file: file@download
+          depends_on:
+          - completed@md5sum_check
+        delete_unencrypted_file:
+          tool: delete_file
+          input:
+            file: file@download
+          depends_on:
+          - completed@encryption  # depends on the success of md5sum check       
+        upload:
+          tool: upload
+          input:
+            project_code: project_code
+            submitter_sample_id: submitter_sample_id
+            data_type: data_type
+            encrypted_file: encrypted_file@decryption
+            encrypted_md5_file: encrypted_md5_file@decryption
+            unencrypted_md5_file: unencrypted_md5_file@decryption
+          depends_on:
+          - completed@encryption
+        delete_encrypted_file:
+          tool: delete_file
+          input:
+            file: encrypted_file@encryption
+          depends_on:
+          - completed@upload  # depends on the success of md5sum check
+
+
+    # prepare_metadata_yaml:
+    #   tool: prepare_metadata_yaml
+    #   input:
+    #     metadata_repo: ega_metadata_repo
+    #     project_code: project_code
+    #     bundle_id: bundle_id
+    #     study_id: ega_study_id
+    #     dataset_id: ega_dataset_id
+    #     sample_id: ega_sample_id
+    #     analysis_id: ega_analysis_id
+    #     expriment_id: ega_expriment_id
+    #     run_id: ega_run_id
+    #     metadata_file_name: ega_metadata_file_name
+    #   depends_on: 
+    #   - completed@md5sum_check
+
+    # metadata_file_upload:
+    #   tool: metadata_upload
+    #   input:
+    #     bundle_id: bundle_id
+    #     object_id: ega_metadata_object_id  # this is the object_id obtained from ICGC service using bundle_id and ega_metadata_file_name as input
+    #     file: xml_file@prepare_metadata_xml
+    #     file_name: ega_metadata_file_name
+    #     file_size: xml_file_size@prepare_metadata_xml
+    #     file_md5sum: xml_file_md5sum@prepare_metadata_xml
+    #   depends_on:
+    #   - completed@prepare_metadata_yaml
+    #   - completed@upload
+    #   defer:
+    #     is_defer: true
+    #     count: 30
+    #     unit: hour
+
+
+# A workflow is made up with one or more tools
+# Each tool can have its own docker imagine if desirable
+tools:
+  # prepare_metadata_xml:  # make a new XML cancatenate original EGA XMLs: study, sample, analysis/(experiment and run)
+  #   command: prepare_metadata_xml.py
+  #   input:
+  #     ega_metadata_repo:
+  #       type: string
+  #     project_code:
+  #       type: string
+  #     bundle_id:  # EGAR or EGAZ ID
+  #       type: string
+  #     ega_study_id:
+  #       type: string
+  #     ega_dataset_id:
+  #       type: string
+  #     ega_sample_id:
+  #       type: string
+  #     ega_analysis_id:
+  #       type: string
+  #     ega_expriment_id:
+  #       type: string
+  #     ega_run_id:
+  #       type: string
+  #     ega_metadata_file_name:
+  #       type: string
+  #   output:
+  #     xml_file:
+  #       type: string
+  #       is_file: true
+  #     xml_file_name:  # passing through from ega_metadata_file_name
+  #       type: string
+  #     xml_file_size:
+  #       type: integer
+  #     xml_file_md5sum:
+  #       type: string
+
+  download:
+    command: download.py
+    input:
+      file_name:
+        type: string
+      file_md5sum:
+        type: string
+      object_id:
+        type: string
+    output:
+      file:  # new field
+        type: string
+        is_file: true
+      file_name:  # passing through
+        type: string
+      file_md5sum:  # passing through
+        type: string
+      object_id:  # passing through
+        type: string
+
+  md5sum_check:
+    command: md5sum_check.py
+    input:
+      file:  # new field
+        type: string
+        is_file: true
+      file_md5sum:
+        type: string
+
+  encryption:
+    command: encryption.py
+    input:
+      input_file:
+        type: string
+        is_file: true
+    output:
+      encrypted_file:
+        type: string
+        is_file: true
+      encrypted_md5_file:
+        type: string
+        is_file: true
+      unencrypted_md5_file:
+        type: string
+        is_file: true
+
+  upload:
+    command: upload.py
+    input:
+      encrypted_file:
+        type: string
+        is_file: true
+      encrypted_md5_file:
+        type: string
+        is_file: true
+      unencrypted_md5_file:
+        type: string
+        is_file: true
+      project_code:
+        type: string
+      submitter_sample_id:
+        type: string
+      data_type:
+        type: string
+
+  delete_file:
+    command: delete_file.py
+    input:
+      file:
+        type: string
+        is_file: true
