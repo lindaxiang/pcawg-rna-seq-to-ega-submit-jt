@@ -3,7 +3,7 @@
 workflow:
   name:  pcawg-rna-seq-to-ega
   version: "0.1.0"
-  source_code: "https://github.com/icgc-dcc/pcawg-rna-seq-to-ega-jt"
+  source_code: "https://github.com/icgc-dcc/pcawg-rna-seq-to-ega-submit-jt"
 
   runtime:
     docker: null
