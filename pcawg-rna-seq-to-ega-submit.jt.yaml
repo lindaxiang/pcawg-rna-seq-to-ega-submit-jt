@@ -1,7 +1,7 @@
 #RNA-Seq workflow definition
 
 workflow:
-  name:  pcawg-rna-seq-to-ega
+  name:  pcawg-rna-seq-to-ega-submit
   version: "0.1.0"
   source_code: "https://github.com/icgc-dcc/pcawg-rna-seq-to-ega-submit-jt"
 
