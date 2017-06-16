@@ -28,7 +28,7 @@ object_id = task_dict.get('input').get('object_id')
 task_start = int(time.time())
 
 try:
-    r = subprocess.check_output(['icgc-storage-client','--profile',' collab','download','--object-id', object_id,'--output-dir', cwd, '--force'
+    r = subprocess.check_output(['icgc-storage-client','--profile',' collab','download','--object-id', object_id,'--output-dir', cwd, '--force'])
 except Exception, e:
     with open('jt.log', 'w') as f: f.write(str(e))
     sys.exit(1)  # task failed
