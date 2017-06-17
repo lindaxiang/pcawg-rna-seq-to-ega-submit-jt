@@ -41,7 +41,7 @@ data_type = task_dict.get('input').get('data_type')
 if data_type.endswith('unaligned'):
     batch_folder = '.'.join(['unaligned', project_code, data_type.split('-')[0]])
 else:
-    batch_folder = '.'.join(['alignment', project_code, data_type.split('-')[0:1]])
+    batch_folder = '.'.join(['alignment', project_code, data_type.split('-')[0], data_type.split('-')[1]])
 
 src_base = os.path.dirname(encrypted_file)
 des_base = os.path.join(batch_folder, submitter_sample_id)
