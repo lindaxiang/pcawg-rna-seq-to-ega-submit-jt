@@ -87,9 +87,9 @@ workflow:
             project_code: project_code
             submitter_sample_id: submitter_sample_id
             data_type: data_type
-            encrypted_file: encrypted_file@decryption
-            encrypted_md5_file: encrypted_md5_file@decryption
-            unencrypted_md5_file: unencrypted_md5_file@decryption
+            encrypted_file: encrypted_file@encryption
+            encrypted_md5_file: encrypted_md5_file@encryption
+            unencrypted_md5_file: unencrypted_md5_file@encryption
           depends_on:
           - completed@encryption
         delete_encrypted_file:
