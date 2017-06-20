@@ -2,7 +2,7 @@
 
 workflow:
   name:  pcawg-rna-seq-to-ega-submit
-  version: "0.1.6"
+  version: "0.1.7"
   source_code: "https://github.com/icgc-dcc/pcawg-rna-seq-to-ega-submit-jt"
 
   runtime:
@@ -29,6 +29,8 @@ workflow:
     data_type:
       type: string
     aliquot_id:
+      type: string
+    lane_label:
       type: string
     files:
       type: array
@@ -87,6 +89,7 @@ workflow:
             project_code: project_code
             submitter_sample_id: submitter_sample_id
             data_type: data_type
+            lane_label: lane_label
             encrypted_file: encrypted_file@encryption
             encrypted_md5_file: encrypted_md5_file@encryption
             unencrypted_md5_file: unencrypted_md5_file@encryption
@@ -100,77 +103,9 @@ workflow:
           - completed@upload  # depends on the success of md5sum check
 
 
-    # prepare_metadata_yaml:
-    #   tool: prepare_metadata_yaml
-    #   input:
-    #     metadata_repo: ega_metadata_repo
-    #     project_code: project_code
-    #     bundle_id: bundle_id
-    #     study_id: ega_study_id
-    #     dataset_id: ega_dataset_id
-    #     sample_id: ega_sample_id
-    #     analysis_id: ega_analysis_id
-    #     expriment_id: ega_expriment_id
-    #     run_id: ega_run_id
-    #     metadata_file_name: ega_metadata_file_name
-    #   depends_on: 
-    #   - completed@md5sum_check
-
-    # metadata_file_upload:
-    #   tool: metadata_upload
-    #   input:
-    #     bundle_id: bundle_id
-    #     object_id: ega_metadata_object_id  # this is the object_id obtained from ICGC service using bundle_id and ega_metadata_file_name as input
-    #     file: xml_file@prepare_metadata_xml
-    #     file_name: ega_metadata_file_name
-    #     file_size: xml_file_size@prepare_metadata_xml
-    #     file_md5sum: xml_file_md5sum@prepare_metadata_xml
-    #   depends_on:
-    #   - completed@prepare_metadata_yaml
-    #   - completed@upload
-    #   defer:
-    #     is_defer: true
-    #     count: 30
-    #     unit: hour
-
-
 # A workflow is made up with one or more tools
 # Each tool can have its own docker imagine if desirable
 tools:
-  # prepare_metadata_xml:  # make a new XML cancatenate original EGA XMLs: study, sample, analysis/(experiment and run)
-  #   command: prepare_metadata_xml.py
-  #   input:
-  #     ega_metadata_repo:
-  #       type: string
-  #     project_code:
-  #       type: string
-  #     bundle_id:  # EGAR or EGAZ ID
-  #       type: string
-  #     ega_study_id:
-  #       type: string
-  #     ega_dataset_id:
-  #       type: string
-  #     ega_sample_id:
-  #       type: string
-  #     ega_analysis_id:
-  #       type: string
-  #     ega_expriment_id:
-  #       type: string
-  #     ega_run_id:
-  #       type: string
-  #     ega_metadata_file_name:
-  #       type: string
-  #   output:
-  #     xml_file:
-  #       type: string
-  #       is_file: true
-  #     xml_file_name:  # passing through from ega_metadata_file_name
-  #       type: string
-  #     xml_file_size:
-  #       type: integer
-  #     xml_file_md5sum:
-  #       type: string
-
   download:
     command: download.py
     input:
@@ -234,6 +169,8 @@ tools:
       submitter_sample_id:
         type: string
       data_type:
+        type: string
+      lane_label:
         type: string
 
   delete_file:

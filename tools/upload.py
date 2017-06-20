@@ -28,6 +28,8 @@ cwd = os.getcwd()
         type: string
       data_type:
         type: string
+      lane_label:
+        type: string
 
 """
 encrypted_file = task_dict.get('input').get('encrypted_file')
@@ -36,15 +38,20 @@ unencrypted_md5_file = task_dict.get('input').get('unencrypted_md5_file')
 project_code = task_dict.get('input').get('project_code')
 submitter_sample_id = task_dict.get('input').get('submitter_sample_id')
 data_type = task_dict.get('input').get('data_type')
+lane_label = task_dict.get('input').get('lane_label')
 
 # composite the batch folder
 if data_type.endswith('unaligned'):
-    batch_folder = '.'.join(['unaligned', project_code, data_type.split('-')[0]])
+    dataset_alias = '_'.join([project_code, 'PCAWG', data_type.split('-')[0].replace('_', '-')])
+    sub_batch = '.'.join(['unaligned', dataset_alias])
+    sub_dir = '.'.join([submitter_sample_id, lane_label])
 else:
-    batch_folder = '.'.join(['alignment', project_code, data_type.split('-')[0], data_type.split('-')[1]])
+    dataset_alias = '_'.join([project_code, 'PCAWG', data_type.split('-')[0].replace('_', '-'), data_type.split('-')[1]])
+    sub_batch = '.'.join(['alignment', dataset_alias])
+    sub_dir = submitter_sample_id
 
 src_base = os.path.dirname(encrypted_file)
-des_base = os.path.join(batch_folder, submitter_sample_id)
+des_base = os.path.join(sub_batch, sub_dir)
 
 task_start = int(time.time())
 
@@ -60,6 +67,7 @@ except Exception, e:
 task_stop = int(time.time())
 
 output_json = {
+    'des_base': des_base,
     'runtime': {
         'task_start': task_start,
         'task_stop': task_stop

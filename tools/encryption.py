@@ -7,7 +7,8 @@ import time
 from random import randint
 import subprocess
 from utils import get_task_dict, save_output_json
-
+import gzip
+import shutil
 
 task_dict = get_task_dict(sys.argv[1])
 cwd = os.getcwd()
@@ -20,8 +21,17 @@ cwd = os.getcwd()
 """
 input_file = task_dict.get('input').get('input_file')
 
-
 task_start = int(time.time())
+
+# gzip xml file
+if input_file.endswith('xml'):
+    try:
+        with open(input_file, 'rb') as f_in, gzip.open(input_file+".gz", 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+        input_file = input_file+".gz"
+    except Exception, e:
+        with open('jt.log', 'w') as f: f.write(str(e))
+        sys.exit(1)  # task failed    
 
 try:
     r = subprocess.check_output(['java', '-jar', os.environ['EGA_CRY_JAR']+'/EgaCryptor.jar', '-file', input_file])
