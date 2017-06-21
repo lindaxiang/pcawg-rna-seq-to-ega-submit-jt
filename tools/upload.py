@@ -57,7 +57,7 @@ task_start = int(time.time())
 
 # do the real work here
 try:
-    r = subprocess.check_output(["ascp", '-k', '1', "-d", "--src-base="+src_base, encrypted_file, encrypted_md5_file, unencrypted_md5_file, "ega-box-358@fasp.ega.ebi.ac.uk:/"+des_base+"/"])
+    r = subprocess.check_output(["ascp", "-k", "1", "-QTl", "1500m", "-d", "--src-base="+src_base, encrypted_file, encrypted_md5_file, unencrypted_md5_file, "ega-box-358@fasp.ega.ebi.ac.uk:/"+des_base+"/"])
 except Exception, e:
     with open('jt.log', 'w') as f: f.write(str(e))
     sys.exit(1)  # task failed
