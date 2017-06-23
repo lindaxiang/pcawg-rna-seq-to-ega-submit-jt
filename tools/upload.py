@@ -30,6 +30,8 @@ cwd = os.getcwd()
         type: string
       lane_label:
         type: string
+      gnos_id:
+        type: string
 
 """
 encrypted_file = task_dict.get('input').get('encrypted_file')
@@ -39,19 +41,21 @@ project_code = task_dict.get('input').get('project_code')
 submitter_sample_id = task_dict.get('input').get('submitter_sample_id')
 data_type = task_dict.get('input').get('data_type')
 lane_label = task_dict.get('input').get('lane_label')
+gnos_id = task_dict.get('input').get('gnos_id')
 
-# composite the batch folder
-if data_type.endswith('unaligned'):
-    dataset_alias = '_'.join([project_code, 'PCAWG', data_type.split('-')[0].replace('_', '-')])
-    sub_batch = '.'.join(['unaligned', dataset_alias])
-    sub_dir = '.'.join([submitter_sample_id, lane_label])
-else:
-    dataset_alias = '_'.join([project_code, 'PCAWG', data_type.split('-')[0].replace('_', '-'), data_type.split('-')[1]])
-    sub_batch = '.'.join(['alignment', dataset_alias])
-    sub_dir = submitter_sample_id
+# use the gnos_id as subfolder name on the ftp server
+# # composite the batch folder
+# if data_type.endswith('unaligned'):
+#     dataset_alias = '_'.join([project_code, 'PCAWG', data_type.split('-')[0].replace('_', '-')])
+#     sub_batch = '.'.join(['unaligned', dataset_alias])
+#     sub_dir = '.'.join([submitter_sample_id, lane_label])
+# else:
+#     dataset_alias = '_'.join([project_code, 'PCAWG', data_type.split('-')[0].replace('_', '-'), data_type.split('-')[1]])
+#     sub_batch = '.'.join(['alignment', dataset_alias])
+#     sub_dir = submitter_sample_id
 
 src_base = os.path.dirname(encrypted_file)
-des_base = os.path.join(sub_batch, sub_dir)
+des_base = gnos_id
 
 task_start = int(time.time())
 

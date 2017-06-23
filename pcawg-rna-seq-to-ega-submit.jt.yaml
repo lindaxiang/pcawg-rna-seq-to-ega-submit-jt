@@ -2,7 +2,7 @@
 
 workflow:
   name:  pcawg-rna-seq-to-ega-submit
-  version: "0.1.8"
+  version: "0.1.9"
   source_code: "https://github.com/icgc-dcc/pcawg-rna-seq-to-ega-submit-jt"
 
   runtime:
@@ -90,6 +90,7 @@ workflow:
             submitter_sample_id: submitter_sample_id
             data_type: data_type
             lane_label: lane_label
+            gnos_id: gnos_id
             encrypted_file: encrypted_file@encryption
             encrypted_md5_file: encrypted_md5_file@encryption
             unencrypted_md5_file: unencrypted_md5_file@encryption
@@ -171,6 +172,8 @@ tools:
       data_type:
         type: string
       lane_label:
+        type: string
+      gnos_id:
         type: string
 
   delete_file:
